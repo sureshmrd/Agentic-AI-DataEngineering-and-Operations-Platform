@@ -1,0 +1,20 @@
+metrics:
+  gross_revenue:
+    definition: "Sum of order item prices"
+    source: "monthly_sales_summary.gross_revenue"
+
+  total_freight:
+    definition: "Sum of freight charges"
+    source: "monthly_sales_summary.total_freight"
+
+  average_order_value:
+    definition: "Gross revenue divided by distinct orders"
+    source: "monthly_sales_summary.average_order_value"
+
+  total_orders:
+    definition: "Total number of orders"
+    source: "monthly_sales_summary.total_orders"
+
+  total_items:
+    definition: "Total number of items"
+    source: "monthly_sales_summary.total_items"

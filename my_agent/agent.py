@@ -77,6 +77,7 @@
 
 #---------------------------------------------------
 
-from .mcp_agent import root_agent
+#from .mcp_agent import root_agent
+from .business_agent import root_agent
 
 root_agent = root_agent

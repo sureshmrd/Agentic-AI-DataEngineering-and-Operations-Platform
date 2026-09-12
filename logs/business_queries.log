@@ -1,0 +1,2 @@
+2026-09-12 12:21:33,181 | INFO | QUERY_SUBMITTED | sql=SELECT month, gross_revenue FROM monthly_sales_summary ORDER BY month LIMIT 100
+2026-09-12 12:21:33,361 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=178.91

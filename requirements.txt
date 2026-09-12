@@ -6,3 +6,6 @@ fastapi
 uvicorn
 httpx
 mysql-connector-python
+pyspark==4.0.1
+sqlglot
+fastmcp
