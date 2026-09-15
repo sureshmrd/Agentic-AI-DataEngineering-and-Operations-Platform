@@ -1,2 +1,41 @@
 2026-09-12 12:21:33,181 | INFO | QUERY_SUBMITTED | sql=SELECT month, gross_revenue FROM monthly_sales_summary ORDER BY month LIMIT 100
 2026-09-12 12:21:33,361 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=178.91
+2026-09-12 21:01:41,134 | INFO | QUERY_SUBMITTED | sql=SELECT month, gross_revenue FROM monthly_sales_summary ORDER BY month LIMIT 100
+2026-09-12 21:01:41,153 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=18.79
+2026-09-12 21:01:59,207 | INFO | QUERY_SUBMITTED | sql=SELECT month, total_freight FROM monthly_sales_summary ORDER BY month LIMIT 100
+2026-09-12 21:01:59,220 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=12.58
+2026-09-12 21:02:30,356 | INFO | QUERY_SUBMITTED | sql=SELECT month, average_order_value FROM monthly_sales_summary ORDER BY month LIMIT 100
+2026-09-12 21:02:30,372 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=15.62
+2026-09-12 21:05:07,776 | INFO | QUERY_SUBMITTED | sql=SELECT category, gross_revenue FROM category_performance ORDER BY gross_revenue DESC LIMIT 100
+2026-09-12 21:05:07,795 | INFO | QUERY_SUCCESS | rows=68 | execution_time_ms=18.95
+2026-09-12 21:06:49,945 | INFO | QUERY_SUBMITTED | sql=SELECT seller_id, gross_revenue FROM seller_performance ORDER BY gross_revenue DESC LIMIT 100
+2026-09-12 21:06:49,969 | INFO | QUERY_SUCCESS | rows=100 | execution_time_ms=23.01
+2026-09-12 21:07:36,123 | INFO | QUERY_SUBMITTED | sql=SELECT seller_id, total_orders, total_items, gross_revenue, average_order_value
+FROM seller_performance
+ORDER BY gross_revenue DESC
+LIMIT 10
+2026-09-12 21:07:36,138 | INFO | QUERY_SUCCESS | rows=10 | execution_time_ms=14.79
+2026-09-12 21:08:08,491 | INFO | QUERY_SUBMITTED | sql=SELECT seller_id, total_orders, total_items, gross_revenue, average_order_value
+FROM seller_performance
+ORDER BY gross_revenue DESC
+LIMIT 5
+2026-09-12 21:08:08,507 | INFO | QUERY_SUCCESS | rows=5 | execution_time_ms=15.97
+2026-09-12 21:08:59,505 | INFO | QUERY_SUBMITTED | sql=SELECT month, total_orders, total_items, gross_revenue, total_freight, average_order_value
+FROM monthly_sales_summary
+ORDER BY gross_revenue DESC
+LIMIT 1
+2026-09-12 21:08:59,523 | INFO | QUERY_SUCCESS | rows=1 | execution_time_ms=17.68
+2026-09-12 21:13:14,795 | INFO | QUERY_SUBMITTED | sql=SELECT gross_revenue
+FROM monthly_sales_summary
+WHERE month = 'January' LIMIT 100
+2026-09-12 21:13:14,815 | INFO | QUERY_SUCCESS | rows=0 | execution_time_ms=19.62
+2026-09-12 21:13:15,655 | INFO | QUERY_SUBMITTED | sql=SELECT DISTINCT month FROM monthly_sales_summary ORDER BY month LIMIT 100
+2026-09-12 21:13:15,674 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=18.49
+2026-09-12 21:13:16,781 | INFO | QUERY_SUBMITTED | sql=SELECT month, gross_revenue, total_orders, total_items
+FROM monthly_sales_summary
+WHERE month = '2017-01' LIMIT 100
+2026-09-12 21:13:16,794 | INFO | QUERY_SUCCESS | rows=1 | execution_time_ms=12.53
+2026-09-12 21:13:43,945 | INFO | QUERY_SUBMITTED | sql=SELECT DISTINCT month FROM monthly_sales_summary ORDER BY month LIMIT 100
+2026-09-12 21:13:43,975 | INFO | QUERY_SUCCESS | rows=8 | execution_time_ms=29.44
+2026-09-12 21:13:45,197 | INFO | QUERY_SUBMITTED | sql=SELECT month, gross_revenue, total_orders, average_order_value FROM monthly_sales_summary WHERE month = '2017-01' LIMIT 100
+2026-09-12 21:13:45,213 | INFO | QUERY_SUCCESS | rows=1 | execution_time_ms=15.05
