@@ -1,12 +1,18 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 
 from api_server.business_database import execute_read_only_sql,get_business_schema
+
 from api_server.pipeline_monitor_server import (
     get_latest_pipeline_run,
     get_pipeline_status,
     get_failed_batches,
     get_watermark,
+)
+
+from api_server.rag_server import (
+    search_rag,
+    fetch_rag_document,
 )
 
 
@@ -59,3 +65,33 @@ def pipeline_failed():
 @app.get("/pipeline/watermark")
 def pipeline_watermark():
     return get_watermark()
+
+
+# ---------------------------------------------------------
+# RAG
+# ---------------------------------------------------------
+
+class RAGSearchRequest(BaseModel):
+    query: str = Field(
+        min_length=1,
+        description="Project knowledge search query",
+    )
+
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+    )
+
+
+@app.post("/rag/search")
+def rag_search(request: RAGSearchRequest):
+    return search_rag(
+        query=request.query,
+        top_k=request.top_k,
+    )
+
+
+@app.get("/rag/document/{doc_id}")
+def rag_document(doc_id: str):
+    return fetch_rag_document(doc_id)
