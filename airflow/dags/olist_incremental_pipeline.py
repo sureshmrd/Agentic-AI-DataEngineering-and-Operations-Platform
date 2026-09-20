@@ -2,11 +2,14 @@ from datetime import datetime
 from pathlib import Path
 import os
 import subprocess
+import urllib.parse
+import urllib.request
 
 import mysql.connector
 from dotenv import load_dotenv
 
-from airflow.sdk import dag, task
+from airflow.sdk import dag, task, get_current_context # type: ignore
+from airflow.task.trigger_rule import TriggerRule # type: ignore
 
 
 PROJECT_ROOT = Path("/mnt/d/agentic-ai-adk")
@@ -30,7 +33,9 @@ def get_windows_host_ip():
     parts = result.stdout.split()
 
     if "via" not in parts:
-        raise RuntimeError("Could not determine Windows host IP from WSL.")
+        raise RuntimeError(
+            "Could not determine Windows host IP from WSL."
+        )
 
     return parts[parts.index("via") + 1]
 
@@ -149,9 +154,68 @@ def olist_incremental_pipeline():
 
         print(f"{batch_id} verified successfully.")
 
+    @task(trigger_rule=TriggerRule.ALL_DONE)
+    def send_notification():
+        context = get_current_context()
+
+        dag_run = context["dag_run"]
+        dag_run_id = dag_run.run_id
+
+        windows_host_ip = get_windows_host_ip()
+
+        url = (
+            f"http://{windows_host_ip}:8003"
+            f"/operations/notify"
+            f"?dag_run_id={urllib.parse.quote(dag_run_id)}"
+        )
+
+        request = urllib.request.Request(
+            url,
+            method="POST",
+        )
+
+        print(
+            "Sending operational notification "
+            f"for DAG run: {dag_run_id}"
+        )
+
+        try:
+            with urllib.request.urlopen(
+                request,
+                timeout=60,
+            ) as response:
+
+                response_body = (
+                    response.read()
+                    .decode("utf-8")
+                )
+
+            print("Notification response:")
+            print(response_body)
+
+            return response_body
+
+        except Exception as exc:
+            print(
+                "Failed to send operational "
+                f"notification: {exc}"
+            )
+            raise
+
+    # -----------------------------
+    # DAG dependency flow
+    # -----------------------------
+
     batch = find_next_batch()
+
     completed = run_pipeline(batch)
-    verify_batch(completed)
+
+    verified = verify_batch(completed)
+
+    notification = send_notification()
+
+    completed >> notification
+    verified >> notification
 
 
 olist_incremental_pipeline()

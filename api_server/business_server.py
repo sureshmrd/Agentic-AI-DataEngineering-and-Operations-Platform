@@ -15,6 +15,13 @@ from api_server.rag_server import (
     fetch_rag_document,
 )
 
+from api_server.operations_server import (
+    get_latest_operation,
+    get_operation_report,
+    get_task_log,
+    send_operation_notification,
+)
+
 
 app = FastAPI(title="Business Analytics API")
 
@@ -68,7 +75,7 @@ def pipeline_watermark():
 
 
 # ---------------------------------------------------------
-# RAG
+# RAG Endpoints
 # ---------------------------------------------------------
 
 class RAGSearchRequest(BaseModel):
@@ -95,3 +102,30 @@ def rag_search(request: RAGSearchRequest):
 @app.get("/rag/document/{doc_id}")
 def rag_document(doc_id: str):
     return fetch_rag_document(doc_id)
+
+
+# ==============================
+# Operations Agent Endpoints
+# ==============================
+
+@app.get("/operations/latest")
+def operation_latest():
+    return get_latest_operation()
+
+@app.get("/operations/log/{task_id}")
+def fetch_task_log(task_id:str,try_number:int = 1):
+    return get_task_log(
+        task_id,
+        try_number
+    )
+
+@app.get("/operations/report")
+def fetch_operation_report():
+    return get_operation_report()
+
+
+@app.post("/operations/notify")
+def operation_notification(
+    dag_run_id: str,
+):
+    return send_operation_notification(dag_run_id)
