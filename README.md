@@ -1,4 +1,4 @@
-# Agentic AI + Data Engineering Platform
+# Agentic AI Data Engineering & Operations Platform
 
 End-to-end Agentic AI + Data Engineering platform combining PySpark,
 Apache Airflow, MySQL, Google ADK, MCP, RAG and Groq LLMs around the
