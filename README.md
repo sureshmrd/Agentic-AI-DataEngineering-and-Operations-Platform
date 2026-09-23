@@ -4,6 +4,9 @@ End-to-end Agentic AI + Data Engineering platform combining PySpark,
 Apache Airflow, MySQL, Google ADK, MCP, RAG and Groq LLMs around the
 Olist Brazilian E-Commerce dataset.
 
+<img width="2172" height="724" alt="project-banner" src="https://github.com/user-attachments/assets/aa8d6a21-c658-4d91-800b-287d99d1d963" />
+
+
 ## Architecture
 
 ``` mermaid
