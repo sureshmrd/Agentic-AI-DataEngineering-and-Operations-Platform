@@ -10,8 +10,7 @@ Olist Brazilian E-Commerce dataset.
 
 
 
-https://github.com/user-attachments/assets/fa9d0ac2-3da9-4503-9318-720d883b41c5
-
+https://github.com/user-attachments/assets/bca7653b-901e-4240-a984-3b3494eb490c
 
 
 
