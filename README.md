@@ -678,10 +678,17 @@ and agent boundary tests
 -   RAG is used for knowledge, not transactional analytics.
 -   Specialist agents do not bypass their responsibilities.
 
-## Summary
+## Copyright
 
-Built an end-to-end Agentic AI + Data Engineering platform using
-PySpark, Apache Airflow, MySQL, Google ADK, MCP, RAG and Groq LLMs.
-Implemented incremental Olist e-commerce processing, analytical models,
-pipeline monitoring, operational diagnostics, deterministic
-notifications and multi-agent orchestration.
+© 2026 Rama Durga Suresh Madagala. All Rights Reserved.
+
+This project, including its original source code, architecture, implementation,
+agent workflows, and documentation, was independently designed and developed
+by the author.
+
+This repository is published for portfolio, demonstration, and educational
+purposes. Third-party libraries, frameworks, models, datasets, and other
+external components remain subject to their respective licenses.
+
+For permissions regarding reuse of the original materials in this repository,
+please contact the author.
