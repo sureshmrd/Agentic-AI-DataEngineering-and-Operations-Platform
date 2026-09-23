@@ -66,60 +66,371 @@ data/batches/
 config/
 docs/
 ```
+### Technical Components Flow
+
+<img width="5187" height="6168" alt="architecture-diagram-2" src="https://github.com/user-attachments/assets/1b026835-e7d9-42e1-bbec-75e1dc4d33de" />
 
 
+## Data Source & Data Model : 
+#### => Hybrid Data Model: Normalized Operational/Core Model + Analytical Aggregate Model + Pipeline Metadata Model
 
-## Data Pipeline
+### Dataset Overview
+
+This project uses the **Brazilian E-Commerce Public Dataset by Olist**,
+a real-world e-commerce dataset containing approximately **100,000
+orders** placed between **2016 and 2018**.
+
+The dataset provides a realistic foundation for building an incremental
+data engineering and analytics platform because it contains multiple
+related business entities such as customers, orders, products, sellers,
+order items, and payments.
+
+**Dataset characteristics:**
+
+| Attribute    | Details                                      |
+|--------------|----------------------------------------------|
+| Dataset      | Brazilian E-Commerce Public Dataset by Olist |
+| Source       | Kaggle                                       |
+| Approx. Size | 45 MB                                        |
+| Orders       | ~100,000                                     |
+| Time Period  | 2016 – 2018                                  |
+| Format       | CSV                                          |
+| Domain       | E-Commerce                                   |
+| Primary Use  | Data Engineering, Analytics & Agentic AI     |
+
+### Dataset Scope in This Project
+
+The original Olist dataset contains several related datasets. For this
+project, the initial data pipeline focuses on the datasets required for
+transactional processing and business analytics.
+
+**Source datasets used:**
 
 ``` text
-Olist
-  -> Monthly Batch Simulation
-  -> Airflow
-  -> PySpark
-  -> Validate / Transform
-  -> MySQL
-  -> Analytics + Metadata + Watermarks
+olist_customers_dataset.csv
+olist_orders_dataset.csv
+olist_order_items_dataset.csv
+olist_order_payments_dataset.csv
+olist_products_dataset.csv
+olist_sellers_dataset.csv
+product_category_name_translation.csv
 ```
+Reviews and geolocation data are intentionally outside the initial
+project scope.
 
-The Airflow DAG is manually triggered because the project uses a finite
-historical batch set.
-
-## Incremental Pipeline
-
-``` bash
-python -m spark_pipeline.pipeline --batch-id batch_201609
-```
-
-Processing:
+The selected datasets are transformed into three logical layers:
 
 ``` text
-Batch -> PySpark -> Validation -> Transformation -> MySQL
-      -> Analytics Refresh -> Batch Metadata -> Watermark
+                    Olist Raw Dataset
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │   Core Tables   │
+                  └────────┬────────┘
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+          Analytics    Pipeline      Watermarks
+           Tables      Metadata
 ```
+### Raw Dataset → Project Tables
 
-## Airflow DAG
+The raw CSV datasets are processed through the PySpark pipeline before
+being loaded into MySQL.
 
 ``` text
-find_next_batch
-      |
-run_pipeline
-      |
-verify_batch
-      |
-send_notification
+Raw CSV Files
+     │
+     ▼
+Schema Application
+     │
+     ▼
+Data Preparation
+     │
+     ├── Type conversions
+     ├── NULL handling
+     ├── Data validation
+     └── Transformation
+     │
+     ▼
+Core MySQL Tables
+     │
+     ├── customers
+     ├── orders
+     ├── order_items
+     ├── order_payments
+     ├── products
+     ├── sellers
+     └── product_category_translation
+     │
+     ▼
+Analytics Transformation
+     │
+     ├── monthly_sales_summary
+     ├── category_performance
+     └── seller_performance
 ```
 
-Operational notification is deterministic and does not depend on an LLM.
+The pipeline uses explicit Spark schemas rather than relying entirely on
+automatic type inference. This provides predictable data types during
+processing and loading.
 
-## FastAPI / ADK
+### Data Transformation & Preparation
 
-``` bash
-uvicorn api_server.business_server:app --host 0.0.0.0 --port 8003
-adk web --port 8002
+The PySpark pipeline performs the required preparation and
+transformation before data reaches the analytical layer.
+
+Key processing areas include:
+
+- Applying explicit schemas to raw datasets
+- Converting source fields into appropriate Spark data types
+- Handling nullable fields during processing
+- Validating incoming batch data
+- Transforming transactional data into analytics-ready structures
+- Joining related business entities where required for analytical
+  calculations
+- Calculating business metrics
+- Refreshing analytical tables after successful core-table loading
+- Maintaining pipeline execution metadata
+- Maintaining processing watermarks
+
+The pipeline processes data incrementally rather than loading the
+complete historical dataset on every execution.
+
+``` text
+Historical Olist Data
+        │
+        ▼
+Monthly Batch Simulation
+        │
+        ▼
+Airflow
+        │
+        ▼
+PySpark
+        │
+        ├── Extract
+        ├── Transform
+        ├── Validate
+        └── Load
+        │
+        ▼
+      MySQL
 ```
-###### ===================================================================================================================================
+### Schema Design
 
-# Agents
+The final MySQL model is organized into three logical layers.
+
+#### Core / Operational Tables
+
+These tables preserve the primary business entities and transactional
+relationships.
+
+``` text
+customers
+orders
+order_items
+order_payments
+products
+sellers
+product_category_translation
+```
+
+Key relationships include:
+
+``` text
+customers
+    │
+    └── 1 : N ── orders
+                    │
+                    ├── 1 : N ── order_items
+                    │                 │
+                    │                 ├── N : 1 ── products
+                    │                 │
+                    │                 └── N : 1 ── sellers
+                    │
+                    └── 1 : N ── order_payments
+
+products
+    │
+    └── N : 1 ── product_category_translation
+```
+
+#### Pipeline Metadata Tables
+
+These tables track the state of incremental processing.
+
+``` text
+pipeline_batches
+pipeline_watermarks
+```
+
+`pipeline_batches` stores batch execution history, including status,
+record counts, timestamps, and errors.
+
+`pipeline_watermarks` stores the latest successfully processed position
+for the pipeline.
+
+#### Analytics Tables
+
+These tables provide pre-aggregated, business-ready data for efficient
+analytical queries.
+
+``` text
+monthly_sales_summary
+category_performance
+seller_performance
+```
+
+This prevents the Business Query Agent from having to repeatedly process
+large transactional datasets for common business questions.
+
+### Transformations & Business Metrics
+
+The analytical layer derives business metrics from the transactional
+data.
+
+For example:
+
+``` text
+gross_revenue
+    = SUM(order_items.price)
+
+total_freight
+    = SUM(order_items.freight_value)
+
+average_order_value
+    = gross_revenue / distinct_orders
+```
+
+The analytical tables are refreshed after successful incremental loading
+so that they represent the accumulated successfully processed data.
+
+### Data Model Pattern
+
+The project follows a **Hybrid Data Model** consisting of:
+
+``` text
+┌──────────────────────────────────────────┐
+│        NORMALIZED CORE MODEL             │
+│                                          │
+│ customers                                │
+│ orders                                   │
+│ order_items                              │
+│ order_payments                           │
+│ products                                 │
+│ sellers                                  │
+│ category translation                     │
+└───────────────────┬──────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────┐
+│       ANALYTICAL AGGREGATE MODEL         │
+│                                          │
+│ monthly_sales_summary                    │
+│ category_performance                     │
+│ seller_performance                       │
+└──────────────────────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│          PIPELINE METADATA               │
+│                                          │
+│ pipeline_batches                         │
+│ pipeline_watermarks                      │
+└──────────────────────────────────────────┘
+```
+
+This design combines:
+
+- **Normalized operational data** for transactional integrity
+- **Aggregated analytical data** for efficient business querying
+- **Pipeline metadata** for incremental processing and observability
+
+The Business Query Agent primarily interacts with the analytical layer,
+while the Pipeline Monitor Agent uses the pipeline metadata layer.
+
+### Data Model Pattern and Diagram 
+The diagram represents the relationship between the operational/core
+entities, pipeline metadata, and analytical aggregate tables used
+throughout the platform.
+
+``` text
+                         ┌─────────────────────┐
+                         │      customers      │
+                         │─────────────────────│
+                         │ PK customer_id      │
+                         │   customer_unique_id│
+                         │   customer_zip_code │
+                         │   customer_city     │
+                         │   customer_state    │
+                         └──────────┬──────────┘
+                                    │
+                                    │ 1 : N
+                                    ▼
+                         ┌─────────────────────┐
+                         │       orders        │
+                         │─────────────────────│
+                         │ PK order_id         │
+                         │ FK customer_id      │
+                         │    order_status     │
+                         │    purchase_ts      │
+                         │    approved_ts      │
+                         │    delivered_carrier│
+                         │   delivered_customer│
+                         │   estimated_delivery│
+                         └───────┬───────┬─────┘
+                                 │       │
+                       1 : N     │       │ 1 : N
+                                 │       │
+                  ┌──────────────┘       └───────────────┐
+                  ▼                                      ▼
+        ┌─────────────────────┐                ┌─────────────────────┐
+        │    order_items      │                │   order_payments    │
+        │─────────────────────│                │─────────────────────│
+        │ PK/FK order_id      │                │ PK/FK order_id      │
+        │ PK order_item_id    │                │ PK payment_seq      │
+        │ FK product_id       │                │    payment_type     │
+        │ FK seller_id        │                │   installments      │
+        │    shipping_limit   │                │    payment_value    │
+        │    price            │                └─────────────────────┘
+        │    freight_value    │
+        └──────────┬──────────┘
+                   │
+            ┌──────┴──────┐
+            │             │
+          N : 1         N : 1
+            │             │
+            ▼             ▼
+ ┌────────────────┐  ┌─────────────────────┐
+ │    products    │  │       sellers       │
+ │────────────────│  │─────────────────────│
+ │ PK product_id  │  │ PK seller_id        │
+ │ FK category    │  │    zip_code         │
+ │    name_length │  │    city             │
+ │    description │  │    state            │
+ │    photos_qty  │  └─────────────────────┘
+ │    weight_g    │
+ │    length_cm   │
+ │    height_cm   │
+ │    width_cm    │
+ └───────┬────────┘
+         │
+         │ N : 1
+         ▼
+┌────────────────────────────┐
+│product_category_translation│
+│────────────────────────────│
+│ PK product_category_name   │
+│    category_name_english   │
+└────────────────────────────┘
+```
+#### Final ERD-Level Model
+
+<img width="1204" height="910" alt="Complete-Data-Model-2" src="https://github.com/user-attachments/assets/343ca55b-5182-4a72-8d7f-aad2298b1331" />
+
+
+
+# Specialized Agents Involved in this Agentic Workflow
 
 The platform is composed of specialized agents, with each agent responsible for a specific type of business or technical task.
 
@@ -662,8 +973,6 @@ Retrieve Execution Details
 - Generates a predefined operational report.
 - Sends the report to the operator configured in the Airflow DAG.
 
-
-###### ===================================================================================================================================
 
 ## Testing
 
