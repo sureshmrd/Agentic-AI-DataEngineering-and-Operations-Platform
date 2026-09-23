@@ -29,10 +29,6 @@ flowchart TB
     AF --> EM[Email Notification]
 ```
 
-### Components & Flow
-
-<img width="5187" height="6168" alt="architecture-diagram-2" src="https://github.com/user-attachments/assets/ea3bac74-0555-47c3-aac5-ad0bae564823" />
-
 ## Stack
 
 -   Python 3.14.7
