@@ -6,6 +6,14 @@ Olist Brazilian E-Commerce dataset.
 
 <img width="2172" height="724" alt="project-banner" src="https://github.com/user-attachments/assets/aa8d6a21-c658-4d91-800b-287d99d1d963" />
 
+### Intro 
+
+
+
+https://github.com/user-attachments/assets/fa9d0ac2-3da9-4503-9318-720d883b41c5
+
+
+
 
 ## Architecture
 
