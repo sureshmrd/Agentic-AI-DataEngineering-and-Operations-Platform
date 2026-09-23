@@ -29,6 +29,138 @@ flowchart TB
     AF --> EM[Email Notification]
 ```
 
+```
+flowchart TD
+
+subgraph group_agents["Agent Orchestration"]
+  node_root_orchestrator["Root Orchestrator"]
+  node_business_agent["Business Agent<br/>[business_agent.py]"]
+  node_monitor_agent["Monitor Agent"]
+  node_rag_agent["RAG Agent<br/>[rag_agent.py]"]
+  node_operations_agent["Operations Agent"]
+end
+
+subgraph group_interfaces["Service Interfaces"]
+  node_business_mcp["Business MCP<br/>[business_server.py]"]
+  node_monitor_mcp["Monitor MCP"]
+  node_rag_mcp["RAG MCP<br/>[rag_server.py]"]
+  node_operations_mcp["Operations MCP"]
+  node_business_api["Business API<br/>[business_server.py]"]
+  node_monitor_api["Monitor API"]
+  node_rag_api["RAG API<br/>[rag_server.py]"]
+  node_operations_api["Operations API"]
+end
+
+subgraph group_pipeline["Data Pipeline"]
+  node_batch_simulation["Batch Simulation<br/>[batch_generator.py]"]
+  node_airflow_dag["Incremental DAG"]
+  node_spark_pipeline["Spark Pipeline<br/>[pipeline.py]"]
+  node_validation["Batch Validation<br/>[validate.py]"]
+  node_transformation["Data Transformation<br/>[transform.py]"]
+  node_mysql_loader["MySQL Loader<br/>[load.py]"]
+end
+
+subgraph group_knowledge["Knowledge Operations"]
+  node_retrieval["Knowledge Retrieval<br/>[retrieval.py]"]
+  node_ingestion["Knowledge Ingestion<br/>[ingestion.py]"]
+  node_chunking["Document Chunking<br/>[chunking.py]"]
+  node_embeddings["Embeddings<br/>[embeddings.py]"]
+  node_airflow_client["Airflow Client<br/>[airflow_client.py]"]
+  node_diagnosis["Failure Diagnosis<br/>[diagnosis.py]"]
+  node_notifier["Operational Notifier<br/>[notifier.py]"]
+end
+
+subgraph group_state["Persistent State"]
+  node_mysql[("MySQL<br/>[database.py]")]
+  node_vector_store[("Vector Store<br/>[vector_store.py]")]
+end
+
+node_user(("User"))
+node_olist["Olist Dataset"]
+node_airflow["Airflow"]
+node_airflow_logs["Airflow Logs"]
+node_email["Email Service"]
+
+node_user -->|"submits request"| node_root_orchestrator
+node_root_orchestrator -->|"delegates analytics"| node_business_agent
+node_root_orchestrator -->|"delegates status"| node_monitor_agent
+node_root_orchestrator -->|"delegates knowledge"| node_rag_agent
+node_root_orchestrator -->|"delegates failures"| node_operations_agent
+node_business_agent -->|"uses tools"| node_business_mcp
+node_monitor_agent -->|"uses tools"| node_monitor_mcp
+node_rag_agent -->|"uses tools"| node_rag_mcp
+node_operations_agent -->|"uses tools"| node_operations_mcp
+node_business_mcp -->|"calls API"| node_business_api
+node_monitor_mcp -->|"calls API"| node_monitor_api
+node_rag_mcp -->|"calls API"| node_rag_api
+node_operations_mcp -->|"calls API"| node_operations_api
+node_business_api -->|"reads analytics"| node_mysql
+node_monitor_api -->|"reads state"| node_mysql
+node_rag_api -->|"runs retrieval"| node_retrieval
+node_batch_simulation -->|"provides batches"| node_airflow_dag
+node_olist -->|"generates batches"| node_batch_simulation
+node_airflow_dag -->|"runs pipeline"| node_spark_pipeline
+node_spark_pipeline -->|"validates data"| node_validation
+node_spark_pipeline -->|"transforms data"| node_transformation
+node_spark_pipeline -->|"loads data"| node_mysql_loader
+node_mysql_loader -->|"writes state"| node_mysql
+node_airflow_dag -->|"requests notification"| node_operations_api
+node_operations_api -->|"dispatches notice"| node_notifier
+node_notifier -->|"sends email"| node_email
+node_operations_api -->|"runs diagnosis"| node_diagnosis
+node_diagnosis -->|"queries execution"| node_airflow_client
+node_airflow_client -->|"reads REST API"| node_airflow
+node_airflow_client -->|"reads logs"| node_airflow_logs
+node_ingestion -->|"splits documents"| node_chunking
+node_ingestion -->|"embeds chunks"| node_embeddings
+node_ingestion -->|"upserts chunks"| node_vector_store
+node_retrieval -->|"embeds query"| node_embeddings
+node_retrieval -->|"queries vectors"| node_vector_store
+
+click node_root_orchestrator "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/my_agent/orchestrator_agent.py"
+click node_business_agent "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/my_agent/business_agent.py"
+click node_monitor_agent "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/my_agent/pipeline_monitor_agent.py"
+click node_rag_agent "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/my_agent/rag_agent.py"
+click node_operations_agent "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/my_agent/operations_agent.py"
+click node_business_mcp "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/mcp_server/business_server.py"
+click node_monitor_mcp "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/mcp_server/pipeline_monitor_server.py"
+click node_rag_mcp "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/mcp_server/rag_server.py"
+click node_operations_mcp "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/mcp_server/operations_server.py"
+click node_business_api "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/api_server/business_server.py"
+click node_monitor_api "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/api_server/pipeline_monitor_server.py"
+click node_rag_api "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/api_server/rag_server.py"
+click node_operations_api "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/api_server/operations_server.py"
+click node_batch_simulation "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/spark_pipeline/batch_generator.py"
+click node_airflow_dag "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/airflow/dags/olist_incremental_pipeline.py"
+click node_spark_pipeline "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/spark_pipeline/pipeline.py"
+click node_validation "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/spark_pipeline/validate.py"
+click node_transformation "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/spark_pipeline/transform.py"
+click node_mysql_loader "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/spark_pipeline/load.py"
+click node_mysql "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/api_server/database.py"
+click node_retrieval "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/rag/retrieval.py"
+click node_ingestion "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/rag/ingestion.py"
+click node_chunking "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/rag/chunking.py"
+click node_embeddings "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/rag/embeddings.py"
+click node_vector_store "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/rag/vector_store.py"
+click node_airflow_client "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/operations/airflow_client.py"
+click node_diagnosis "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/operations/diagnosis.py"
+click node_notifier "https://github.com/sureshmrd/agentic-ai-dataengineering-and-operations-platform/blob/main/operations/notifier.py"
+
+classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
+classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
+class node_root_orchestrator,node_business_agent,node_monitor_agent,node_rag_agent,node_operations_agent,node_user toneBlue
+class node_business_mcp,node_monitor_mcp,node_rag_mcp,node_operations_mcp,node_business_api,node_monitor_api,node_rag_api,node_operations_api toneAmber
+class node_batch_simulation,node_airflow_dag,node_spark_pipeline,node_validation,node_transformation,node_mysql_loader toneMint
+class node_retrieval,node_ingestion,node_chunking,node_embeddings,node_airflow_client,node_diagnosis,node_notifier toneRose
+class node_mysql,node_vector_store,node_olist,node_airflow,node_airflow_logs,node_email toneIndigo
+```
+
+
 ## Stack
 
 -   Python 3.14.7
