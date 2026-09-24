@@ -13,6 +13,23 @@ Olist Brazilian E-Commerce dataset.
 https://github.com/user-attachments/assets/bca7653b-901e-4240-a984-3b3494eb490c
 
 
+## Problem Statement
+This project addresses a common enterprise data and operations problem: business users, application users, and technical/data-engineering teams need information from different enterprise systems, but accessing and interpreting that information typically requires SQL knowledge, application documentation, or direct access to technical monitoring systems.
+
+Business users may need answers about sales, orders, revenue, freight, category performance, and seller performance, but may not have the technical expertise to write SQL queries. Application and business users may also need explanations of application concepts, metrics, schemas, or business terminology that are distributed across internal documentation.
+
+At the same time, data-engineering teams need visibility into Airflow pipeline executions, failed tasks, logs, errors, and possible resolutions. Business users generally should not need access to detailed Airflow logs, while technical operators need deeper diagnostic information when a pipeline fails.
+
+The project therefore aims to build a modular Agentic AI platform that provides a single Natural Language interface while routing each request to a specialized agent capable of interacting with the appropriate enterprise data or knowledge source.
+
+The system addresses four major requirements:
+
+- Business Data Access : Allow non-technical users to query available business data using Natural Language instead of writing SQL.
+- Application Knowledge Retrieval : Provide grounded answers about application concepts, metrics, schemas, and internal documentation using RAG.
+- Pipeline Visibility : Provide business-friendly information about pipeline execution without requiring users to access Airflow logs.
+- Technical Pipeline Operations : Allow technical operations workflows to inspect Airflow execution details, analyze failures, consult technical knowledge, and provide troubleshooting guidance.
+
+
 
 ## Architecture
 
@@ -995,6 +1012,93 @@ and agent boundary tests
 -   MCP provides controlled tool boundaries.
 -   RAG is used for knowledge, not transactional analytics.
 -   Specialist agents do not bypass their responsibilities.
+
+### Complete Project — Solution / Result
+
+The project implements an Agentic AI ecosystem using Google ADK, MCP, FastAPI, MySQL, Airflow, and RAG, where specialized agents collaborate with backend services according to the nature of the user's request.
+
+``` text
+
+                         ┌──────────────────────────┐
+                         │        End Users         │
+                         │                          │
+                         │ Business  │ Application  │
+                         │ Technical │ Operations   │
+                         └────────────┬─────────────┘
+                                      │
+                                      │ Natural Language
+                                      ▼
+                         ┌──────────────────────────┐
+                         │     Root / Router Agent  │
+                         │                          │
+                         │ Understands user intent  │
+                         │ and delegates requests   │
+                         └────────────┬─────────────┘
+                                      │
+             ┌────────────────────────┼────────────────────────┐
+             │                        │                        │
+             ▼                        ▼                        ▼
+   ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+   │ Business Query   │    │    RAG Agent     │    │ Pipeline Monitor │
+   │     Agent        │    │                  │    │      Agent       │
+   └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘
+            │                       │                       │
+            │                       │                       │
+            ▼                       ▼                       ▼
+     Business Data            Knowledge Base         Pipeline Metadata
+            │                       │                       │
+            │                       │                       │
+            └───────────────┬───────┴───────────────┬───────┘
+                            │                       │
+                            ▼                       ▼
+                     ┌─────────────┐       ┌──────────────────┐
+                     │ MCP Tools   │       │ MySQL Metadata   │
+                     │             │       │                  │
+                     │ Controlled  │       │ pipeline_batches │
+                     │ backend     │       │ pipeline_        │
+                     │ capabilities│       │ watermarks       │
+                     └──────┬──────┘       └──────────────────┘
+                            │
+                            ▼
+                     ┌─────────────┐
+                     │   FastAPI   │
+                     │ API Layer   │
+                     └──────┬──────┘
+                            │
+                            ▼
+                     ┌─────────────┐
+                     │    MySQL    │
+                     │ Business DB │
+                     └─────────────┘
+
+
+       ┌──────────────────────────────────────────────────────┐
+       │              Data Engineering Layer                  │
+       │                                                      │
+       │              Airflow Data Pipeline                   │
+       │                                                      │
+       │   Source → Extract → Transform → Load → Metadata     │
+       │                                  │                   │
+       │                                  ▼                   │
+       │                     Pipeline Metadata Tables         │
+       └──────────────────────────────────────────────────────┘
+
+
+       ┌──────────────────────────────────────────────────────┐
+       │                 Technical Operations                 │
+       │                                                      │
+       │  Airflow DAG → FastAPI → Operations Agent → MCP      │
+       │                              │                       │
+       │                              ├── Airflow Logs        │
+       │                              │                       │
+       │                              └── RAG Agent           │
+       │                                      │               │
+       │                                      ▼               │
+       │                             Technical Knowledge      │
+       │                             / Documentation          │
+       └──────────────────────────────────────────────────────┘
+
+```
 
 ## Copyright
 
